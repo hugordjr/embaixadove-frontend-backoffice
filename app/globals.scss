@@ -5,33 +5,61 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 24 9.8% 10%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 220 58% 33%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 220 58% 33%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 20 14.3% 4.1%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 220 58% 33%;
     --radius: 0.5rem;
 
-    --chart-1: 359 2% 40%;
-    --chart-2: 240 1% 74%;
-    --chart-3: 240 1% 58%;
-    --chart-4: 240 1% 42%;
-    --chart-5: 240 2% 26%;
+    --chart-1: 220 58% 33%;
+    --chart-2: 215.4 16.3% 46.9%;
+    --chart-3: 210 40% 96%;
+    --chart-4: 214.3 31.8% 91.4%;
+    --chart-5: 222.2 84% 4.9%;
 
     --sidebar-width: 19rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 220 58% 45%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 220 58% 45%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 220 58% 45%;
+
+    --chart-1: 220 58% 45%;
+    --chart-2: 215 20.2% 65.1%;
+    --chart-3: 217.2 32.6% 17.5%;
+    --chart-4: 222.2 84% 4.9%;
+    --chart-5: 210 40% 98%;
   }
 }
 
@@ -41,5 +69,77 @@
   }
   body {
     @apply overflow-x-hidden bg-muted/70 text-foreground;
+  }
+  
+  /* Remover margin-top de todos os inputs, textareas e selects */
+  input,
+  textarea,
+  select,
+  .input,
+  .textarea,
+  .select {
+    margin-top: 0 !important;
+  }
+
+  label {
+    color:#294287;
+  }
+  
+  /* Regras específicas para o componente Select do Shadcn UI */
+  [data-radix-select-trigger],
+  .select-trigger,
+  .SelectTrigger,
+  [role="combobox"],
+  .relative,
+  .flex,
+  .h-10,
+  .w-full,
+  .items-center,
+  .justify-between,
+  .rounded-md,
+  .border,
+  .border-input,
+  .bg-background,
+  .px-3,
+  .py-2,
+  .text-sm,
+  .ring-offset-background,
+  .placeholder:text-muted-foreground,
+  .focus:outline-none,
+  .focus:ring-2,
+  .focus:ring-ring,
+  .focus:ring-offset-2,
+  .disabled:cursor-not-allowed,
+  .disabled:opacity-50 {
+    margin-top: 0 !important;
+  }
+  
+  /* Regras para o container do Select */
+  .select,
+  .Select,
+  .SelectRoot,
+  .SelectContent,
+  .SelectItem,
+  .SelectLabel,
+  .SelectSeparator,
+  .SelectGroup,
+  .SelectValue,
+  .SelectViewport,
+  .SelectScrollUpButton,
+  .SelectScrollDownButton {
+    margin-top: 0 !important;
+  }
+  
+  /* FormLabel com cor azul principal */
+  .form-label,
+  .FormLabel,
+  label,
+  [data-slot="label"],
+  .text-sm,
+  .font-medium,
+  .leading-none,
+  .peer-disabled:cursor-not-allowed,
+  .peer-disabled:opacity-70 {
+    color: #294287 !important;
   }
 }

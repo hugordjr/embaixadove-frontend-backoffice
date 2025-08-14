@@ -13,7 +13,7 @@ type PageRoutesItemType = {
 
 export const page_routes: PageRoutesType[] = [
   {
-    title: "Menu",
+    title: "",
     items: [
       {
         title: "Performance",

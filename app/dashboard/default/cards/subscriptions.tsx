@@ -43,7 +43,7 @@ export default function SubscriptionsCard() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base">Subscriptions</CardTitle>
+        <CardTitle className="text-base">Posts</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">+2350</div>

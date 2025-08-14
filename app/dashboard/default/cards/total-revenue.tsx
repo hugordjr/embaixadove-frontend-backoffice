@@ -43,7 +43,7 @@ export default function TotalRevenueCard() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base">Total Revenue</CardTitle>
+        <CardTitle className="text-base">Engajamento</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">$15,231.89</div>

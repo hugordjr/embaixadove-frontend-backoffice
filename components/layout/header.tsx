@@ -16,6 +16,7 @@ import { SidebarNavLink } from "./sidebar";
 import { page_routes } from "@/lib/routes-config";
 import { Fragment } from "react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   return (
@@ -46,8 +47,9 @@ export default function Header() {
           </SheetContent>
         </Sheet>
         <div className="w-full flex-1">
-          <Search />
+          
         </div>
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <figure className="cursor-pointer">

@@ -3,6 +3,7 @@ import { API_BASE_URL } from "./env";
 export async function getMission({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
   const url = `${API_BASE_URL}/missions?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`;
   const res = await fetch(url, { next: { revalidate: 0 } });
+  console.log(res);
   if (!res.ok) {
     throw new Error(`Falha ao buscar missões externas: ${res.status} ${await res.text()}`);
   }

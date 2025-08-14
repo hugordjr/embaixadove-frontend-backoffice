@@ -23,10 +23,7 @@ export default function Page() {
     <>
       <div className="mb-4 flex items-center justify-between space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center space-x-2">
-          <CalendarDateRangePicker />
-          <Button>Download</Button>
-        </div>
+
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <TeamMembersCard />
@@ -36,10 +33,7 @@ export default function Page() {
         <div className="lg:col-span-2">
           <MetricCard className="h-full" />
         </div>
-        <div className="lg:col-span-2">
-          <PaymentsCard className="h-full" />
-        </div>
-        <PaymentMethodCard />
+
       </div>
     </>
   );

@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1755120523743,
+    "title": "teste",
+    "description": "teste",
+    "points": 22,
+    "type": "photo",
+    "status": "active",
+    "deadline": null,
+    "highlighted": false,
+    "briefing_objective": "teste",
+    "briefing_target_audience": "teste",
+    "briefing_main_message": "teste",
+    "briefing_value_proposition": "teste",
+    "instructions": "teste",
+    "required_hashtags": null
+  }
+]

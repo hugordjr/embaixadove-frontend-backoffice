@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -17,73 +18,119 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
+import { createMission, type MissionCreatePayload } from "@/lib/missionService";
 
 const formSchema = z.object({
   id: z.coerce.number().int().optional(),
   title: z.string().min(1, "Título é obrigatório"),
-  description: z.string().optional(),
-  image: z.any().optional(),
-  points: z.coerce.number().int().min(0).default(0),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  image_url: z.string().url("Informe uma URL válida").min(1, "URL da imagem é obrigatória"),
+  points: z.coerce.number().int().min(1, "Pontos devem ser maior que 0"),
   type: z.enum(["review", "photo", "video", "hashtag", "indication"], { required_error: "Selecione um tipo" }),
   status: z.enum(["new", "active", "closed", "canceled"], { required_error: "Selecione um status" }),
-  deadline: z.date().optional(),
+  deadline: z.date({ required_error: "Data de prazo é obrigatória" }),
   highlighted: z.boolean().default(false),
-  briefing_objective: z.string().optional(),
-  briefing_target_audience: z.string().optional(),
-  briefing_main_message: z.string().optional(),
-  briefing_value_proposition: z.string().optional(),
-  instructions: z.string().optional(),
-  required_hashtags: z.string().optional()
+  briefing_objective: z.string().min(1, "Objetivo é obrigatório"),
+  briefing_target_audience: z.string().min(1, "Público alvo é obrigatório"),
+  briefing_main_message: z.string().min(1, "Mensagem principal é obrigatória"),
+  briefing_value_proposition: z.string().min(1, "Proposta de valor é obrigatória"),
+  instructions: z.string().min(1, "Instruções são obrigatórias"),
+  required_hashtags: z.string().min(1, "Hashtags obrigatórias são obrigatórias")
 });
 
 export default function NewMissionForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
+  // Data padrão: hoje + 30 dias
+  const defaultDeadline = addDays(new Date(), 30);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      image_url: "",
       points: 0,
       highlighted: false,
-      type: undefined,
-      status: undefined
+      deadline: defaultDeadline,
+      briefing_objective: "",
+      briefing_target_audience: "",
+      briefing_main_message: "",
+      briefing_value_proposition: "",
+      instructions: "",
+      required_hashtags: ""
     }
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setSubmitting(true);
-      const formData = new FormData();
-      if (values.id != null) formData.append("id", String(values.id));
-      formData.append("title", values.title);
-      if (values.description) formData.append("description", values.description);
-      formData.append("points", String(values.points ?? 0));
-      if (values.type) formData.append("type", values.type);
-      if (values.status) formData.append("status", values.status);
-      if (values.deadline) formData.append("deadline", values.deadline.toISOString());
-      formData.append("highlighted", String(values.highlighted ?? false));
-      if (values.briefing_objective) formData.append("briefing_objective", values.briefing_objective);
-      if (values.briefing_target_audience) formData.append("briefing_target_audience", values.briefing_target_audience);
-      if (values.briefing_main_message) formData.append("briefing_main_message", values.briefing_main_message);
-      if (values.briefing_value_proposition) formData.append("briefing_value_proposition", values.briefing_value_proposition);
-      if (values.instructions) formData.append("instructions", values.instructions);
-      if (values.required_hashtags) formData.append("required_hashtags", values.required_hashtags);
 
-      const imageList = (form.getValues("image") as FileList | undefined) || undefined;
-      const imageFile = imageList && imageList.length > 0 ? imageList[0] : undefined;
-      if (imageFile) {
-        formData.append("image", imageFile);
+      // validações obrigatórias para todos os campos
+      const requiredErrors: Array<{ field: keyof z.infer<typeof formSchema>; label: string }> = [];
+      
+      if (!values.title?.trim()) requiredErrors.push({ field: "title", label: "Título" });
+      if (!values.description?.trim()) requiredErrors.push({ field: "description", label: "Descrição" });
+      if (!values.image_url?.trim()) requiredErrors.push({ field: "image_url", label: "URL da Imagem" });
+      if (!values.points || values.points <= 0) requiredErrors.push({ field: "points", label: "Pontos" });
+      if (!values.type) requiredErrors.push({ field: "type", label: "Tipo" });
+      if (!values.status) requiredErrors.push({ field: "status", label: "Status" });
+      if (!values.deadline) requiredErrors.push({ field: "deadline", label: "Prazo Final" });
+      if (!values.briefing_objective?.trim()) requiredErrors.push({ field: "briefing_objective", label: "Objetivo" });
+      if (!values.briefing_target_audience?.trim()) requiredErrors.push({ field: "briefing_target_audience", label: "Público Alvo" });
+      if (!values.briefing_main_message?.trim()) requiredErrors.push({ field: "briefing_main_message", label: "Mensagem Principal" });
+      if (!values.briefing_value_proposition?.trim()) requiredErrors.push({ field: "briefing_value_proposition", label: "Proposta de Valor" });
+      if (!values.instructions?.trim()) requiredErrors.push({ field: "instructions", label: "Instruções" });
+      if (!values.required_hashtags?.trim()) requiredErrors.push({ field: "required_hashtags", label: "Hashtags Obrigatórias" });
+
+      if (requiredErrors.length) {
+        // Mostra toast com todos os campos obrigatórios
+        const errorMessage = `Campos obrigatórios: ${requiredErrors.map(err => err.label).join(", ")}`;
+        toast.error(errorMessage);
+        
+        // Marca os campos como inválidos para mostrar labels vermelhos
+        setTimeout(() => {
+          requiredErrors.forEach((err) => {
+            form.setError(err.field as any, { type: "required" });
+          });
+        }, 0);
+        
+        return;
       }
 
-      const res = await fetch("/api/missions", { method: "POST", body: formData });
-      if (!res.ok) throw new Error(await res.text());
+      const toStringArray = (input?: string) =>
+        input
+          ? input
+              .split(/\r?\n|,/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined;
+
+      const payload: MissionCreatePayload = {
+        title: values.title,
+        description: values.description!,
+        image_url: values.image_url!,
+        points: values.points!,
+        type: values.type!,
+        status: values.status!,
+        deadline: values.deadline!.toISOString(),
+        highlighted: values.highlighted ?? false,
+        briefing_objective: values.briefing_objective!,
+        briefing_target_audience: values.briefing_target_audience!,
+        briefing_main_message: values.briefing_main_message!,
+        briefing_value_proposition: values.briefing_value_proposition!,
+        instructions: toStringArray(values.instructions!),
+        required_hashtags: toStringArray(values.required_hashtags!)
+      };
+
+      await createMission(payload);
+      toast.success("Missão criada com sucesso!");
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar missão");
+      toast.error("Erro ao salvar missão externa");
     } finally {
       setSubmitting(false);
     }
@@ -91,6 +138,7 @@ export default function NewMissionForm() {
 
   return (
     <Form {...form}>
+      <hr/>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField control={form.control} name="id" render={({ field }) => <input type="hidden" {...field} />} />
         <div className="space-y-6">
@@ -100,11 +148,12 @@ export default function NewMissionForm() {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título da missão</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.title && "text-destructive")}>
+                    Título da missão *
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Título" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -115,11 +164,12 @@ export default function NewMissionForm() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição resumida da missão</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.description && "text-destructive")}>
+                    Descrição resumida da missão *
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Descrição" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -127,14 +177,15 @@ export default function NewMissionForm() {
           <div className="col-span-1">
             <FormField
               control={form.control}
-              name="image"
-              render={() => (
+              name="image_url"
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Banner da missão</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.image_url && "text-destructive")}>
+                    URL da imagem (banner) *
+                  </FormLabel>
                   <FormControl>
-                    <Input type="file" accept="image/*" onChange={(e) => form.setValue("image", e.target.files as unknown as any)} />
+                    <Input placeholder="https://..." {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -147,7 +198,9 @@ export default function NewMissionForm() {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo da missão</FormLabel>
+                    <FormLabel className={cn(form.formState.errors.type && "text-destructive")}>
+                      Tipo da missão *
+                    </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -162,7 +215,6 @@ export default function NewMissionForm() {
                         <SelectItem value="indication">indication</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -173,7 +225,9 @@ export default function NewMissionForm() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel className={cn(form.formState.errors.status && "text-destructive")}>
+                      Status *
+                    </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -187,7 +241,6 @@ export default function NewMissionForm() {
                         <SelectItem value="canceled">canceled</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -201,11 +254,12 @@ export default function NewMissionForm() {
                 name="points"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pontos</FormLabel>
+                    <FormLabel className={cn(form.formState.errors.points && "text-destructive")}>
+                      Pontos *
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                      <Input type="number" min={1} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -220,7 +274,6 @@ export default function NewMissionForm() {
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -232,7 +285,9 @@ export default function NewMissionForm() {
               name="deadline"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Prazo final</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.deadline && "text-destructive")}>
+                    Prazo final *
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -247,7 +302,6 @@ export default function NewMissionForm() {
                       <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -260,11 +314,12 @@ export default function NewMissionForm() {
               name="briefing_objective"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Objetivo</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.briefing_objective && "text-destructive")}>
+                    Objetivo *
+                  </FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} />
+                    <Textarea rows={3} placeholder="Objetivo da missão" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -275,11 +330,12 @@ export default function NewMissionForm() {
               name="briefing_target_audience"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Público Alvo</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.briefing_target_audience && "text-destructive")}>
+                    Público Alvo *
+                  </FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} />
+                    <Textarea rows={3} placeholder="Público alvo da missão" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -290,11 +346,12 @@ export default function NewMissionForm() {
               name="briefing_main_message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mensagem Principal</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.briefing_main_message && "text-destructive")}>
+                    Mensagem Principal *
+                  </FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} />
+                    <Textarea rows={3} placeholder="Mensagem principal da missão" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -305,11 +362,12 @@ export default function NewMissionForm() {
               name="briefing_value_proposition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Proposta de Valor</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.briefing_value_proposition && "text-destructive")}>
+                    Proposta de Valor *
+                  </FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} />
+                    <Textarea rows={3} placeholder="Proposta de valor da missão" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -320,11 +378,28 @@ export default function NewMissionForm() {
               name="instructions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Instruções</FormLabel>
+                  <FormLabel className={cn(form.formState.errors.instructions && "text-destructive")}>
+                    Instruções *
+                  </FormLabel>
                   <FormControl>
-                    <Textarea rows={4} {...field} />
+                    <Textarea rows={4} placeholder="Instruções da missão (uma por linha ou separadas por vírgula)" {...field} />
                   </FormControl>
-                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="xl:col-span-2 md:col-span-1 col-span-1">
+            <FormField
+              control={form.control}
+              name="required_hashtags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={cn(form.formState.errors.required_hashtags && "text-destructive")}>
+                    Hashtags Obrigatórias *
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea rows={3} placeholder="Hashtags obrigatórias (uma por linha ou separadas por vírgula)" {...field} />
+                  </FormControl>
                 </FormItem>
               )}
             />

@@ -27,7 +27,7 @@ export default function TeamMembersCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Team Members</CardTitle>
+        <CardTitle className="text-base">Team de Embaixadovers</CardTitle>
         <CardDescription>
           Invite your team members to collaborate.
         </CardDescription>
