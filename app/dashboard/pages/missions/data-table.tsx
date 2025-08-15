@@ -52,7 +52,7 @@ export type Mission = {
   id: number;
   title: string;
   description?: string;
-  image_url?: string;
+  image_base64?: string | null;
   points: number;
   type: "review" | "photo" | "video" | "hashtag" | "indication";
   status: "new" | "active" | "closed" | "canceled";
@@ -64,6 +64,8 @@ export type Mission = {
   briefing_value_proposition?: string;
   instructions?: string[];
   required_hashtags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 interface MissionsDataTableProps {
@@ -73,6 +75,14 @@ interface MissionsDataTableProps {
 
 export default function MissionsDataTable({ data, onEditMission }: MissionsDataTableProps) {
   const tableData = React.useMemo<Mission[]>(() => (Array.isArray(data) ? data : []), [data]);
+  
+  // Debug: Log dos dados recebidos
+  React.useEffect(() => {
+    console.log('MissionsDataTable - data recebido:', data);
+    console.log('MissionsDataTable - tableData processado:', tableData);
+    console.log('MissionsDataTable - Array.isArray(data):', Array.isArray(data));
+  }, [data, tableData]);
+  
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -91,7 +101,10 @@ export default function MissionsDataTable({ data, onEditMission }: MissionsDataT
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={row.original.image_url || "/images/cover.png"} alt={String(row.getValue("title"))} />
+            <AvatarImage 
+              src={"/images/cover.png"} 
+              alt={String(row.getValue("title"))} 
+            />
             <AvatarFallback>MS</AvatarFallback>
           </Avatar>
           <div className="font-medium">{row.getValue("title")}</div>

@@ -126,158 +126,167 @@ const mockData: Influencer[] = [
   }
 ];
 
-export const columns: ColumnDef<Influencer>[] = [
-  {
-    accessorKey: "id",
-    header: "#",
-    cell: ({ row }) => row.getValue("id")
-  },
-  
-  {
-    accessorKey: "name",
-    header: "Influenciador",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-4">
-        <Avatar>
-          <AvatarImage src={row.original.photo_url || "/images/avatars/1.png"} alt="Influenciador" />
-          <AvatarFallback>IN</AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-medium">{row.getValue("name")}</div>
-          {row.original.nickname ? (
-            <div className="text-xs text-muted-foreground">@{row.original.nickname}</div>
-          ) : null}
-        </div>
-      </div>
-    )
-  },
-  {
-    accessorKey: "level_name",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Level
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("level_name")
-  },
-  {
-    accessorKey: "level_number",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Level #
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("level_number")
-  },
-  {
-    accessorKey: "current_points",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Pontos
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("current_points")
-  },
-  {
-    accessorKey: "missions_completed_count",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Missões
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("missions_completed_count")
-  },
-  {
-    accessorKey: "ranking",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Ranking
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("ranking")
-  },
-  {
-    accessorKey: "is_brand",
-    header: "Marca",
-    cell: ({ row }) => {
-      const isBrand = row.original.is_brand;
-      return (
-        <Badge
-          className={cn("capitalize", {
-            "bg-blue-100 text-blue-700 hover:bg-blue-100": isBrand,
-            "bg-gray-100 text-gray-700 hover:bg-gray-100": !isBrand
-          })}
-        >
-          {isBrand ? "Sim" : "Não"}
-        </Badge>
-      );
-    }
-  },
-  {
-    accessorKey: "affiliate_link_url",
-    header: "Afiliado",
-    cell: ({ row }) => {
-      const url = row.original.affiliate_link_url;
-      if (!url) return "-";
-      return (
-        <a className="text-primary underline" href={url} target="_blank" rel="noreferrer">
-          {url.length > 24 ? url.slice(0, 24) + "…" : url}
-        </a>
-      );
-    }
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const influencer = row.original as Influencer;
-      const [loading, setLoading] = React.useState(false);
-      const router = useRouter();
-      const handleDelete = async () => {
-        if (!confirm(`Remover influenciador #${influencer.id}?`)) return;
-        try {
-          setLoading(true);
-          const res = await fetch(`/api/influencers?id=${influencer.id}`, { method: "DELETE" });
-          if (!res.ok) throw new Error(await res.text());
-          router.refresh();
-        } catch (e) {
-          alert("Falha ao remover influenciador");
-        } finally {
-          setLoading(false);
-        }
-      };
-      const handleEdit = () => router.push(`/dashboard/pages/influencer/${influencer.id}`);
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0" disabled={loading}>
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleEdit}>Ver/Editar</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDelete}>Excluir</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-  }
-];
-
 export default function BackofficeDataTable({ data }: { data: Influencer[] }) {
   const tableData = React.useMemo<Influencer[]>(() => (data && data.length ? data : mockData), [data]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [loadingStates, setLoadingStates] = React.useState<Record<number, boolean>>({});
+  const router = useRouter();
+
+  // Função para navegar para edição
+  const handleEdit = (influencerId: number) => {
+    router.push(`/dashboard/pages/influencer/${influencerId}`);
+  };
+
+  // Função para deletar influenciador
+  const handleDelete = async (influencerId: number) => {
+    if (!confirm(`Remover influenciador #${influencerId}?`)) return;
+    
+    try {
+      setLoadingStates(prev => ({ ...prev, [influencerId]: true }));
+      const res = await fetch(`/api/influencers?id=${influencerId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      router.refresh();
+    } catch (e) {
+      alert("Falha ao remover influenciador");
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [influencerId]: false }));
+    }
+  };
+
+  const columns: ColumnDef<Influencer>[] = [
+    {
+      accessorKey: "id",
+      header: "#",
+      cell: ({ row }) => row.getValue("id")
+    },
+    
+    {
+      accessorKey: "name",
+      header: "Influenciador",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-4">
+          <Avatar>
+            <AvatarImage src={row.original.photo_url || "/images/avatars/1.png"} alt="Influenciador" />
+            <AvatarFallback>IN</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{row.getValue("name")}</div>
+            {row.original.nickname ? (
+              <div className="text-xs text-muted-foreground">@{row.original.nickname}</div>
+            ) : null}
+          </div>
+        </div>
+      )
+    },
+    {
+      accessorKey: "level_name",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Level
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("level_name")
+    },
+    {
+      accessorKey: "level_number",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Level #
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("level_number")
+    },
+    {
+      accessorKey: "current_points",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Pontos
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("current_points")
+    },
+    {
+      accessorKey: "missions_completed_count",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Missões
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("missions_completed_count")
+    },
+    {
+      accessorKey: "ranking",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Ranking
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("ranking")
+    },
+    {
+      accessorKey: "is_brand",
+      header: "Marca",
+      cell: ({ row }) => {
+        const isBrand = row.original.is_brand;
+        return (
+          <Badge
+            className={cn("capitalize", {
+              "bg-blue-100 text-blue-700 hover:bg-blue-100": isBrand,
+              "bg-gray-100 text-gray-700 hover:bg-gray-100": !isBrand
+            })}
+          >
+            {isBrand ? "Sim" : "Não"}
+          </Badge>
+        );
+      }
+    },
+    {
+      accessorKey: "affiliate_link_url",
+      header: "Afiliado",
+      cell: ({ row }) => {
+        const url = row.original.affiliate_link_url;
+        if (!url) return "-";
+        return (
+          <a className="text-primary underline" href={url} target="_blank" rel="noreferrer">
+            {url.length > 24 ? url.slice(0, 24) + "…" : url}
+          </a>
+        );
+      }
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const influencer = row.original as Influencer;
+        const isLoading = loadingStates[influencer.id] || false;
+        
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleEdit(influencer.id)}>Ver/Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(influencer.id)}>Excluir</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }
+    }
+  ];
 
   const table = useReactTable({
     data: tableData,

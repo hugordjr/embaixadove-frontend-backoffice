@@ -33,7 +33,7 @@ import { updateMission, MissionUpdatePayload } from "@/lib/missionService";
 const formSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  image_url: z.string().min(1, "URL da imagem é obrigatória"),
+  image_base64: z.string().min(1, "URL da imagem é obrigatória"),
   points: z.number().min(1, "Pontos devem ser pelo menos 1"),
   type: z.string().min(1, "Tipo é obrigatório"),
   status: z.string().min(1, "Status é obrigatório"),
@@ -63,7 +63,7 @@ export default function EditMissionForm({ mission, onClose, onSuccess }: EditMis
     defaultValues: {
       title: mission.title || "",
       description: mission.description || "",
-      image_url: mission.image_url || "",
+      image_base64: mission.image_base64 || "",
       points: mission.points || 100,
       type: mission.type || "",
       status: mission.status || "",
@@ -100,7 +100,7 @@ export default function EditMissionForm({ mission, onClose, onSuccess }: EditMis
       const payload: MissionUpdatePayload = {
         title: values.title,
         description: values.description,
-        image_url: values.image_url,
+        image_base64: values.image_base64,
         points: values.points,
         type: values.type,
         status: values.status,
@@ -166,10 +166,10 @@ export default function EditMissionForm({ mission, onClose, onSuccess }: EditMis
           {/* URL da Imagem */}
           <FormField
             control={form.control}
-            name="image_url"
+            name="image_base64"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={cn(form.formState.errors.image_url && "text-destructive")}>
+                <FormLabel className={cn(form.formState.errors.image_base64 && "text-destructive")}>
                   URL da Imagem *
                 </FormLabel>
                 <FormControl>

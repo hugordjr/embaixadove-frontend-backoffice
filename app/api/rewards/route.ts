@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const name = String(formData.get("name") ?? "");
     const description = formData.get("description") ? String(formData.get("description")) : undefined;
-    const image_url = formData.get("image_url") ? String(formData.get("image_url")) : undefined;
+    const image_base64 = formData.get("image_base64") ? String(formData.get("image_base64")) : undefined;
     const points_required = Number(formData.get("points_required") ?? 0);
     const stock = Number(formData.get("stock") ?? 0);
     const rules = formData.get("rules") ? String(formData.get("rules")) : undefined;
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       id: newId,
       name,
       description,
-      image_url,
+      image_base64,
       points_required,
       stock,
       rules
@@ -77,12 +77,12 @@ export async function PUT(req: NextRequest) {
     const current = list[index];
     const name = String(formData.get("name") ?? current.name ?? "");
     const description = formData.get("description") ? String(formData.get("description")) : current.description;
-    const image_url = formData.get("image_url") ? String(formData.get("image_url")) : current.image_url;
+    const image_base64 = formData.get("image_base64") ? String(formData.get("image_base64")) : current.image_base64;
     const points_required = Number(formData.get("points_required") ?? current.points_required ?? 0);
     const stock = Number(formData.get("stock") ?? current.stock ?? 0);
     const rules = formData.get("rules") ? String(formData.get("rules")) : current.rules;
 
-    const updated = { ...current, name, description, image_url, points_required, stock, rules };
+    const updated = { ...current, name, description, image_base64, points_required, stock, rules };
     list[index] = updated;
     await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
     return NextResponse.json({ ok: true, record: updated }, { status: 200 });

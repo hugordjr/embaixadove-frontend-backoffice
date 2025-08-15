@@ -49,61 +49,78 @@ const mockLevels: Level[] = [
   { id: 3, name: "Gold", level_number: 3, min_points: 1000, max_points: 1999 }
 ];
 
-export const columns: ColumnDef<Level>[] = [
-  { accessorKey: "id", header: "#", cell: ({ row }) => row.getValue("id") },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Nome do Nível
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("name")
-  },
-  {
-    accessorKey: "level_number",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Level do Nível
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("level_number")
-  },
-  { accessorKey: "min_points", header: "Pontos mínimos", cell: ({ row }) => row.getValue("min_points") },
-  { accessorKey: "max_points", header: "Pontos máximos", cell: ({ row }) => row.getValue("max_points") },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const router = useRouter();
-      const level = row.original as Level;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/pages/levels/${level.id}`)}>Ver/Editar</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-  }
-];
-
 export default function LevelsDataTable({ data }: { data: Level[] }) {
   const tableData = React.useMemo<Level[]>(() => (data && data.length ? data : mockLevels), [data]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const router = useRouter();
+
+  // Função para navegar para edição
+  const handleEditLevel = (levelId: number) => {
+    router.push(`/dashboard/pages/levels/${levelId}`);
+  };
+
+  const columns: ColumnDef<Level>[] = [
+    {
+      accessorKey: "id",
+      header: "#",
+      cell: ({ row }) => row.getValue("id")
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Nome
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("name")
+    },
+    {
+      accessorKey: "level_number",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Nível #
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("level_number")
+    },
+    { 
+      accessorKey: "min_points", 
+      header: "Pontos mínimos", 
+      cell: ({ row }) => row.getValue("min_points") 
+    },
+    { 
+      accessorKey: "max_points", 
+      header: "Pontos máximos", 
+      cell: ({ row }) => row.getValue("max_points") 
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const level = row.original as Level;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleEditLevel(level.id)}>Ver/Editar</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }
+    }
+  ];
 
   const table = useReactTable({
     data: tableData,

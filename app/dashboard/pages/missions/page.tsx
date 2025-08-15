@@ -1,32 +1,44 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import FormWrapper from "./new/form-wrapper";
 import EditFormWrapper from "./edit/form-wrapper";
-import { getMission } from "@/lib/missionService";
 import ErrorToast from "./error-toast";
-import MissionsDataTable from "./data-table";
+import MissionsDataTable, { type Mission } from "./data-table";
+import { getMission } from "@/lib/missionService";
 
 export const dynamic = "force-dynamic";
 
 export default function Page() {
-  const [missions, setMissions] = useState([]);
+  const [missions, setMissions] = useState<Mission[]>([]);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingMission, setEditingMission] = useState(null);
+  const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   // Função para buscar missões
   const fetchMissions = async () => {
     try {
       setIsLoading(true);
-      const result = await getMission({ page: 1, limit: 50 });
-      const missionsData = Array.isArray(result) ? result : (result?.data ?? result?.items ?? []);
-      setMissions(missionsData);
       setHasError(false);
+      const response = await getMission({ page: 1, limit: 50 });
+      console.log('Resposta completa da API:', response);
+      
+      // Extrair os items da resposta da API
+      const missionsData = response?.items || response || [];
+      console.log('Dados das missões extraídos:', missionsData);
+      
+      setMissions(missionsData);
     } catch (error) {
       console.error("Erro ao buscar missões:", error);
       setHasError(true);
@@ -37,7 +49,7 @@ export default function Page() {
   };
 
   // Função para abrir edição
-  const handleEditMission = (mission: any) => {
+  const handleEditMission = (mission: Mission) => {
     setEditingMission(mission);
     setIsEditSheetOpen(true);
   };
@@ -56,7 +68,16 @@ export default function Page() {
 
   // Buscar missões na montagem do componente
   useEffect(() => {
-    fetchMissions();
+    // Proteção contra múltiplas chamadas
+    let mounted = true;
+    
+    if (mounted) {
+      fetchMissions();
+    }
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (

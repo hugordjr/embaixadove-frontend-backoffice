@@ -70,76 +70,81 @@ const mockPosts: Post[] = [
   }
 ];
 
-export const columns: ColumnDef<Post>[] = [
-  { accessorKey: "id", header: "#", cell: ({ row }) => row.getValue("id") },
-  {
-    accessorKey: "content",
-    header: "Post",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={row.original.media_url || "/images/cover.png"} alt="post" />
-          <AvatarFallback>PO</AvatarFallback>
-        </Avatar>
-        <div className="font-medium line-clamp-1 max-w-[320px]">{String(row.getValue("content"))}</div>
-      </div>
-    )
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Tipo
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("type") || "-"
-  },
-  {
-    accessorKey: "posted_at",
-    header: "Data",
-    cell: ({ row }) => {
-      const value = row.original.posted_at;
-      if (!value) return "-";
-      const d = new Date(value);
-      return isNaN(d.getTime()) ? String(value) : d.toLocaleString();
-    }
-  },
-  { accessorKey: "likes_count", header: "Likes", cell: ({ row }) => row.getValue("likes_count") },
-  { accessorKey: "comments_count", header: "Comentários", cell: ({ row }) => row.getValue("comments_count") },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const post = row.original as Post;
-      const router = useRouter();
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/pages/posts/${post.id}`)}>
-              Ver/Editar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-  }
-];
-
 export default function PostsDataTable({ data }: { data: Post[] }) {
   const tableData = React.useMemo<Post[]>(() => (data && data.length ? data : mockPosts), [data]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const router = useRouter();
+
+  // Função para navegar para edição
+  const handleEditPost = (postId: number) => {
+    router.push(`/dashboard/pages/posts/${postId}`);
+  };
+
+  const columns: ColumnDef<Post>[] = [
+    { accessorKey: "id", header: "#", cell: ({ row }) => row.getValue("id") },
+    {
+      accessorKey: "content",
+      header: "Post",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={row.original.media_url || "/images/cover.png"} alt="post" />
+            <AvatarFallback>PO</AvatarFallback>
+          </Avatar>
+          <div className="font-medium line-clamp-1 max-w-[320px]">{String(row.getValue("content"))}</div>
+        </div>
+      )
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Tipo
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("type") || "-"
+    },
+    {
+      accessorKey: "posted_at",
+      header: "Data",
+      cell: ({ row }) => {
+        const value = row.original.posted_at;
+        if (!value) return "-";
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? String(value) : d.toLocaleString();
+      }
+    },
+    { accessorKey: "likes_count", header: "Likes", cell: ({ row }) => row.getValue("likes_count") },
+    { accessorKey: "comments_count", header: "Comentários", cell: ({ row }) => row.getValue("comments_count") },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const post = row.original as Post;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleEditPost(post.id)}>
+                Ver/Editar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }
+    }
+  ];
 
   const table = useReactTable({
     data: tableData,

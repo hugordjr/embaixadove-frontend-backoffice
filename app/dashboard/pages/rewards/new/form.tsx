@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
-  image_url: z.string().url("URL inválida").optional().or(z.literal("").transform(() => undefined)),
+  image_base64: z.string().url("URL inválida").optional().or(z.literal("").transform(() => undefined)),
   points_required: z.coerce.number().int(),
   stock: z.coerce.number().int(),
   rules: z.string().optional()
@@ -30,7 +30,7 @@ export default function NewRewardForm() {
     defaultValues: {
       name: "",
       description: "",
-      image_url: "",
+      image_base64: "",
       points_required: 0,
       stock: 0,
       rules: ""
@@ -43,7 +43,7 @@ export default function NewRewardForm() {
       const formData = new FormData();
       formData.append("name", values.name);
       if (values.description) formData.append("description", values.description);
-      if (values.image_url) formData.append("image_url", values.image_url);
+      if (values.image_base64) formData.append("image_base64", values.image_base64);
       formData.append("points_required", String(values.points_required));
       formData.append("stock", String(values.stock));
       if (values.rules) formData.append("rules", values.rules);
@@ -81,7 +81,7 @@ export default function NewRewardForm() {
           <div className="col-span-1">
             <FormField
               control={form.control}
-              name="image_url"
+              name="image_base64"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Imagem (URL)</FormLabel>

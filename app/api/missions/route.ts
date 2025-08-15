@@ -37,22 +37,22 @@ export async function POST(req: NextRequest) {
     const required_hashtags = formData.get("required_hashtags");
 
     // upload de imagem (opcional)
-    let image_url: string | undefined = undefined;
+    let image_base64: string | undefined = undefined;
     const image = formData.get("image");
     if (image && image instanceof File) {
       const arrayBuffer = await image.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = new Uint8Array(arrayBuffer);
       const filename = `${Date.now()}_${image.name}`.replace(/[^a-zA-Z0-9_.-]/g, "_");
       const filepath = path.join(UPLOADS_DIR, filename);
       await fs.writeFile(filepath, buffer);
-      image_url = `/uploads/${filename}`;
+      image_base64 = `/uploads/${filename}`;
     }
 
     const record = {
       id: id ? Number(id) : Date.now(),
       title,
       description,
-      image_url,
+      image_base64,
       points,
       type,
       status,

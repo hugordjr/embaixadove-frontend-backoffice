@@ -41,7 +41,7 @@ export type Reward = {
   id: number;
   name: string;
   description?: string;
-  image_url?: string;
+  image_base64?: string;
   points_required: number;
   stock: number;
   rules?: string;
@@ -52,7 +52,7 @@ const mockRewards: Reward[] = [
     id: 1,
     name: "Kit Dove Nutrição",
     description: "Shampoo + Condicionador",
-    image_url: "/images/cover.png",
+    image_base64: "/images/cover.png",
     points_required: 800,
     stock: 25,
     rules: "Disponível 1 por usuário"
@@ -61,7 +61,7 @@ const mockRewards: Reward[] = [
     id: 2,
     name: "Voucher R$50",
     description: "Cupom de compras",
-    image_url: "/images/cover.png",
+    image_base64: "/images/cover.png",
     points_required: 1200,
     stock: 10,
     rules: "Uso único"
@@ -70,72 +70,10 @@ const mockRewards: Reward[] = [
     id: 3,
     name: "Kit Viagem",
     description: "Miniaturas para viagem",
-    image_url: "/images/cover.png",
+    image_base64: "/images/cover.png",
     points_required: 500,
     stock: 40,
     rules: "Enquanto durar o estoque"
-  }
-];
-
-export const columns: ColumnDef<Reward>[] = [
-  { accessorKey: "id", header: "#", cell: ({ row }) => row.getValue("id") },
-  {
-    accessorKey: "name",
-    header: "Recompensa",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={row.original.image_url || "/images/cover.png"} alt={String(row.getValue("name"))} />
-          <AvatarFallback>RW</AvatarFallback>
-        </Avatar>
-        <div className="font-medium">{row.getValue("name")}</div>
-      </div>
-    )
-  },
-  {
-    accessorKey: "points_required",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Pontos
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("points_required")
-  },
-  {
-    accessorKey: "stock",
-    header: ({ column }) => (
-      <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Stock
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => row.getValue("stock")
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const reward = row.original as Reward;
-      const router = useRouter();
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/pages/rewards/${reward.id}`)}>
-              Ver/Editar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
   }
 ];
 
@@ -145,6 +83,73 @@ export default function RewardsDataTable({ data }: { data: Reward[] }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const router = useRouter();
+
+  // Função para navegar para edição
+  const handleEditReward = (rewardId: number) => {
+    router.push(`/dashboard/pages/rewards/${rewardId}`);
+  };
+
+  const columns: ColumnDef<Reward>[] = [
+    { accessorKey: "id", header: "#", cell: ({ row }) => row.getValue("id") },
+    {
+      accessorKey: "name",
+      header: "Recompensa",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={row.original.image_base64 || "/images/cover.png"} alt={String(row.getValue("name"))} />
+            <AvatarFallback>RW</AvatarFallback>
+          </Avatar>
+          <div className="font-medium">{row.getValue("name")}</div>
+        </div>
+      )
+    },
+    {
+      accessorKey: "points_required",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Pontos
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("points_required")
+    },
+    {
+      accessorKey: "stock",
+      header: ({ column }) => (
+        <Button className="-ml-3" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Stock
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => row.getValue("stock")
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const reward = row.original as Reward;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleEditReward(reward.id)}>
+                Ver/Editar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }
+    }
+  ];
 
   const table = useReactTable({
     data: tableData,

@@ -20,12 +20,14 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";
 import { createMission, type MissionCreatePayload } from "@/lib/missionService";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const formSchema = z.object({
   id: z.coerce.number().int().optional(),
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  image_url: z.string().url("Informe uma URL válida").min(1, "URL da imagem é obrigatória"),
+  image_base64: z.string().min(1, "Imagem é obrigatória"),
+  image_url: z.string().default("http://www.globo.com"),
   points: z.coerce.number().int().min(1, "Pontos devem ser maior que 0"),
   type: z.enum(["review", "photo", "video", "hashtag", "indication"], { required_error: "Selecione um tipo" }),
   status: z.enum(["new", "active", "closed", "canceled"], { required_error: "Selecione um status" }),
@@ -51,7 +53,8 @@ export default function NewMissionForm() {
     defaultValues: {
       title: "",
       description: "",
-      image_url: "",
+      image_base64: "",
+      image_url: "http://www.globo.com",
       points: 0,
       highlighted: false,
       deadline: defaultDeadline,
@@ -73,7 +76,7 @@ export default function NewMissionForm() {
       
       if (!values.title?.trim()) requiredErrors.push({ field: "title", label: "Título" });
       if (!values.description?.trim()) requiredErrors.push({ field: "description", label: "Descrição" });
-      if (!values.image_url?.trim()) requiredErrors.push({ field: "image_url", label: "URL da Imagem" });
+      if (!values.image_base64?.trim()) requiredErrors.push({ field: "image_base64", label: "URL da Imagem" });
       if (!values.points || values.points <= 0) requiredErrors.push({ field: "points", label: "Pontos" });
       if (!values.type) requiredErrors.push({ field: "type", label: "Tipo" });
       if (!values.status) requiredErrors.push({ field: "status", label: "Status" });
@@ -111,6 +114,7 @@ export default function NewMissionForm() {
       const payload: MissionCreatePayload = {
         title: values.title,
         description: values.description!,
+        image_base64: values.image_base64!,
         image_url: values.image_url!,
         points: values.points!,
         type: values.type!,
@@ -177,14 +181,40 @@ export default function NewMissionForm() {
           <div className="col-span-1">
             <FormField
               control={form.control}
+              name="image_base64"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={cn(form.formState.errors.image_base64 && "text-destructive")}>
+                    Imagem da missão (banner) *
+                  </FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Selecione uma imagem para a missão"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <FormField
+              control={form.control}
               name="image_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={cn(form.formState.errors.image_url && "text-destructive")}>
-                    URL da imagem (banner) *
+                  <FormLabel>
+                    URL da imagem
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    <Input 
+                      {...field} 
+                      disabled 
+                      placeholder="http://www.globo.com"
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -236,9 +266,6 @@ export default function NewMissionForm() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="new">new</SelectItem>
-                        <SelectItem value="active">active</SelectItem>
-                        <SelectItem value="closed">closed</SelectItem>
-                        <SelectItem value="canceled">canceled</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormItem>
