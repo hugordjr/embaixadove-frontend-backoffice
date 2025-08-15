@@ -163,21 +163,6 @@ export default function EditMissionForm({ mission, onClose, onSuccess }: EditMis
             )}
           />
 
-          {/* URL da Imagem */}
-          <FormField
-            control={form.control}
-            name="image_base64"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className={cn(form.formState.errors.image_base64 && "text-destructive")}>
-                  URL da Imagem *
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
 
           {/* Pontos */}
           <FormField
@@ -437,11 +422,25 @@ export default function EditMissionForm({ mission, onClose, onSuccess }: EditMis
           </div>
         </div>
 
+
+          {/* URL da Imagem */}
+          <FormField
+            control={form.control}
+            name="image_base64"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={cn(form.formState.errors.image_base64 && "text-destructive")}>
+                  URL da Imagem *
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
         {/* Botões */}
         <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Atualizando..." : "Atualizar Missão"}
           </Button>

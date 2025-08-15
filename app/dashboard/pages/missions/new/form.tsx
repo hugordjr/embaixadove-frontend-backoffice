@@ -200,26 +200,6 @@ export default function NewMissionForm() {
             />
           </div>
 
-          <div className="col-span-1">
-            <FormField
-              control={form.control}
-              name="image_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    URL da imagem
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      disabled 
-                      placeholder="http://www.globo.com"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -431,6 +411,27 @@ export default function NewMissionForm() {
               )}
             />
           </div>
+
+          <div className="col-span-1">
+            <FormField
+              control={form.control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    URL da imagem
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      placeholder="http://www.globo.com"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          
         </div>
         <div className="flex gap-3">
           <Button className="w-full" type="submit" disabled={submitting}>{submitting ? "Salvando..." : "Salvar"}</Button>

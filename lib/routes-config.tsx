@@ -16,7 +16,7 @@ export const page_routes: PageRoutesType[] = [
     title: "",
     items: [
       {
-        title: "Performance",
+        title: "Dashboard",
         href: "/dashboard/default",
         icon: "PieChart"
       },
